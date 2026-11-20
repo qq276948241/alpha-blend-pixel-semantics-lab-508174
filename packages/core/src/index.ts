@@ -33,7 +33,7 @@ async function detectFileTypeFromBuffer(buffer: Buffer | ArrayBuffer) {
   return fileTypeFromBuffer(
     buffer instanceof ArrayBuffer
       ? buffer
-      : new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength)
+      : new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength),
   );
 }
 
@@ -98,7 +98,7 @@ export interface JimpPlugin {
 }
 
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
-  k: infer I
+  k: infer I,
 ) => void
   ? I
   : never;
@@ -233,7 +233,7 @@ export function createJimp<
      */
     static async read(
       url: string | Buffer | ArrayBuffer,
-      options?: MimeTypeToDecodeOptions
+      options?: MimeTypeToDecodeOptions,
     ) {
       if (Buffer.isBuffer(url) || url instanceof ArrayBuffer) {
         return this.fromBuffer(url);
@@ -300,8 +300,8 @@ export function createJimp<
       if (Array.isArray(bitmap.data)) {
         data = Buffer.concat(
           bitmap.data.map((hex) =>
-            Buffer.from(hex.toString(16).padStart(8, "0"), "hex")
-          )
+            Buffer.from(hex.toString(16).padStart(8, "0"), "hex"),
+          ),
         );
       }
 
@@ -337,7 +337,7 @@ export function createJimp<
      */
     static async fromBuffer(
       buffer: Buffer | ArrayBuffer,
-      options?: MimeTypeToDecodeOptions
+      options?: MimeTypeToDecodeOptions,
     ) {
       const actualBuffer =
         buffer instanceof ArrayBuffer ? bufferFromArrayBuffer(buffer) : buffer;
@@ -355,7 +355,7 @@ export function createJimp<
       }
 
       const image = new CustomJimp(
-        await format.decode(actualBuffer, options?.[format.mime])
+        await format.decode(actualBuffer, options?.[format.mime]),
       ) as InstanceType<typeof CustomJimp> & ExtraMethodMap;
 
       image.mime = mime.mime;
@@ -508,7 +508,7 @@ export function createJimp<
       const mimeType = mime.getType(path);
       await writeFile(
         path,
-        await this.getBuffer(mimeType as SupportedMimeTypes, options)
+        await this.getBuffer(mimeType as SupportedMimeTypes, options),
       );
     }
 
@@ -687,18 +687,36 @@ export function createJimp<
 
     /**
      * Composites a source image over to this image respecting alpha channels
+     *
+     * The blend mode's color formula is applied to the straight (unmultiplied)
+     * pixel colors first, and the result is then composited with Porter-Duff
+     * "source-over" alpha. Fully transparent pixels composited together yield
+     * transparent black (`0x00000000`). Blended channels are rounded to the
+     * nearest 8-bit value and clamped to 0–255. Parts of the source that fall
+     * outside this image (including negative offsets) are cropped away. The
+     * source image is never modified, and both images may share the same
+     * underlying buffer without affecting the result.
+     *
+     * Note: formats without an alpha channel (e.g. BMP, JPEG) receive the
+     * image composited over its background color on export — alpha is
+     * dropped, not preserved per channel.
      * @param src the source Jimp instance
      * @param x the x position to blit the image
      * @param y the y position to blit the image
      * @param options determine what mode to use
      * @example
      * ```ts
-     * import { Jimp } from "jimp";
+     * import { Jimp, BlendMode } from "jimp";
      *
      * const image = new Jimp({ width: 10, height: 10, color: 0xffffffff });
      * const image2 = new Jimp({ width: 3, height: 3, color: 0xff0000ff });
      *
+     * // default mode is BlendMode.SRC_OVER
      * image.composite(image2, 3, 3);
+     *
+     * // blend modes multiply, screen, overlay, darken and lighten
+     * // (among others) are also available
+     * image.composite(image2, 0, 0, { mode: BlendMode.MULTIPLY });
      * ```
      */
     composite<I extends typeof this>(
@@ -709,7 +727,7 @@ export function createJimp<
         mode?: BlendMode;
         opacitySource?: number;
         opacityDest?: number;
-      } = {}
+      } = {},
     ) {
       return composite(this, src, x, y, options);
     }
@@ -739,14 +757,14 @@ export function createJimp<
       y: number,
       w: number,
       h: number,
-      cb: (x: number, y: number, idx: number) => any
+      cb: (x: number, y: number, idx: number) => any,
     ): this;
     scan(
       x: number | ((x: number, y: number, idx: number) => any),
       y?: number,
       w?: number,
       h?: number,
-      f?: (x: number, y: number, idx: number) => any
+      f?: (x: number, y: number, idx: number) => any,
     ): this {
       return scan(this, x as any, y as any, w as any, h as any, f as any);
     }

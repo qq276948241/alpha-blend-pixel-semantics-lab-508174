@@ -24,6 +24,7 @@ export default defineConfig({
             { label: "Using in Browser", link: "/guides/browser/" },
             { label: "Writing Plugins", link: "/guides/writing-plugins/" },
             { label: "Custom Jimp", link: "/guides/custom-jimp/" },
+            { label: "Compositing", link: "/guides/compositing/" },
             { label: "Migrate to v1", link: "/guides/migrate-to-v1/" },
             { label: "WEBP/WASM", link: "/guides/webp/" },
           ],
@@ -43,12 +44,12 @@ export default defineConfig({
             plugin: [
               path.join(
                 path.dirname(import.meta.url).replace("file:", ""),
-                "./src/typedoc-plugin.js"
+                "./src/typedoc-plugin.js",
               ),
               "typedoc-plugin-zod",
               path.join(
                 path.dirname(import.meta.url).replace("file:", ""),
-                "./src/typedoc-zod-extended.js"
+                "./src/typedoc-zod-extended.js",
               ),
             ],
           },

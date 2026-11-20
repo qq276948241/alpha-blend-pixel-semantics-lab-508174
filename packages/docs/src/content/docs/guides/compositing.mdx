@@ -1,0 +1,88 @@
+---
+title: Compositing and Blend Modes
+description: How to layer images with Jimp's composite method and blend modes.
+---
+
+`image.composite(src, x, y, options)` layers a source image over another
+image, respecting the alpha channel of both.
+
+```ts
+import { Jimp, BlendMode } from "jimp";
+
+const image = await Jimp.read("background.png");
+const overlay = await Jimp.read("overlay.png");
+
+// Default: simple source-over compositing
+image.composite(overlay, 50, 50);
+
+// With a blend mode
+image.composite(overlay, 0, 0, { mode: BlendMode.MULTIPLY });
+```
+
+## Blend modes
+
+The `BlendMode` enum is exported from `jimp`, `@jimp/core` and `@jimp/types`
+(all three are the same value):
+
+| Mode                   | Effect                                                          |
+| ---------------------- | --------------------------------------------------------------- |
+| `BlendMode.SRC_OVER`   | Source painted over the destination (default)                   |
+| `BlendMode.DST_OVER`   | Source painted under the destination                            |
+| `BlendMode.MULTIPLY`   | Colors are multiplied — results are the same or darker          |
+| `BlendMode.ADD`        | Color values are added — increases brightness                   |
+| `BlendMode.SCREEN`     | Inverse colors are multiplied — results are the same or lighter |
+| `BlendMode.OVERLAY`    | Multiply in dark areas, screen in bright areas                  |
+| `BlendMode.DARKEN`     | Keeps the lower value of each channel                           |
+| `BlendMode.LIGHTEN`    | Keeps the higher value of each channel                          |
+| `BlendMode.HARD_LIGHT` | Like overlay, but keyed to the source instead                   |
+| `BlendMode.DIFFERENCE` | Subtracts the smaller channel value from the larger             |
+| `BlendMode.EXCLUSION`  | Like difference, but softer                                     |
+
+## How colors and alpha are combined
+
+Every mode follows the same two steps (W3C _Compositing and Blending_):
+
+1. **Blend** — the mode's blend function `B(cs, cd)` is applied to the
+   straight (unmultiplied) source and destination colors.
+2. **Composite** — the blended color is composited with the Porter-Duff
+   source-over operator:
+
+   ```
+   αo = αs + αb·(1 − αs)
+   co = (αs·(1−αb)·cs + αs·αb·B(cs, cd) + αb·(1−αs)·cd) / αo
+   ```
+
+Consequences worth knowing:
+
+- The RGB channels of a **fully transparent pixel never leak** into the
+  result, even if a file stored "hidden" color values there.
+- Two fully transparent pixels composite to **transparent black**
+  (`0x00000000`) — the color formula's denominator is zero in that case, so
+  the result is defined rather than `NaN`.
+- Blended channels are **rounded to the nearest** 8-bit value (ties round
+  up) and **clamped to 0–255**.
+- PNG preserves the composited alpha exactly on save/reload. Formats
+  **without** an alpha channel (BMP, JPEG) drop transparency on export: the
+  image is composited over its background color and decodes fully opaque.
+  This is not per-channel reversible.
+
+## Geometry and safety
+
+- `x`/`y` may be negative or place the source partially (or fully) outside
+  the destination — out-of-bounds pixels are cropped away.
+- The source image is never modified. Source and destination may even be
+  the same instance or share a pixel buffer; the source is snapshotted
+  internally so traversal order cannot change the result.
+- Invalid modes, non-finite coordinates and corrupt bitmaps throw an error
+  **before** anything is written, so a failed call never leaves the
+  destination half-composited.
+
+## Opacity options
+
+```ts
+image.composite(overlay, 0, 0, {
+  mode: BlendMode.OVERLAY,
+  opacitySource: 0.8, // scales the source alpha before blending
+  opacityDest: 1.0, // scales the destination alpha before blending
+});
+```
