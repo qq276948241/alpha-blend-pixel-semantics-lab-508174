@@ -1,0 +1,38 @@
+{
+  "name": "@jimp/docs",
+  "private": true,
+  "version": "1.6.0",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "rm -rf dist && astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "clean": "rm -rf node_modules .tshy .tshy-build dist .turbo"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.3",
+    "@astrojs/react": "^3.6.2",
+    "@astrojs/starlight": "^0.26.1",
+    "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
+    "@jimp/core": "workspace:*",
+    "@jimp/plugin-print": "workspace:*",
+    "@jimp/wasm-webp": "workspace:*",
+    "@types/react": "^18.3.5",
+    "astro": "^4.15.1",
+    "eslint": "^9.9.1",
+    "jimp": "workspace:*",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "sharp": "^0.33.5",
+    "starlight-typedoc": "^0.15.0",
+    "typedoc": "^0.26.6",
+    "typedoc-plugin-markdown": "4.2.6",
+    "typedoc-plugin-zod": "^1.2.1",
+    "typescript": "^5.5.4"
+  },
+  "devDependencies": {
+    "vite-plugin-node-polyfills": "^0.22.0"
+  }
+}

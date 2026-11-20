@@ -1,0 +1,3 @@
+{
+  "extends": "@jimp/config-typescript/base.json"
+}

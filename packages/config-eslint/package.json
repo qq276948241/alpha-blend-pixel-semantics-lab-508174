@@ -1,0 +1,23 @@
+{
+  "name": "@jimp/config-eslint",
+  "version": "1.6.0",
+  "license": "MIT",
+  "private": true,
+  "main": "base.js",
+  "type": "module",
+  "scripts": {
+    "clean": "rm -rf node_modules .tshy .tshy-build dist .turbo"
+  },
+  "devDependencies": {
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-config-turbo": "^2.1.1",
+    "typescript": "^5.5.4"
+  },
+  "publishConfig": {},
+  "sideEffects": false,
+  "dependencies": {
+    "@eslint/js": "^9.9.1",
+    "@types/eslint__js": "^8.42.3",
+    "typescript-eslint": "^8.3.0"
+  }
+}
